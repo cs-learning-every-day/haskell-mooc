@@ -20,13 +20,11 @@
 -- Feel free to use if-then-else, guards, and ordering functions (< and > etc.).
 --
 -- The tests will check that you haven't added imports :)
-
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Set3b where
 
 import Mooc.LimitedPrelude
-import Mooc.Todo
 
 ------------------------------------------------------------------------------
 -- Ex 1: given numbers start, count and end, build a list that starts
@@ -130,9 +128,13 @@ merge xs ys = todo
 --
 -- That is, implement the function mymaximum that takes
 --
+
 -- * a function `bigger` :: a -> a -> Bool
+
 -- * a value `initial` of type a
+
 -- * a list `xs` of values of type a
+
 --
 -- and returns the biggest value it sees, considering both `initial`
 -- and all element in `xs`.
