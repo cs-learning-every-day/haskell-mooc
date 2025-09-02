@@ -11,6 +11,7 @@ import Data.Char
 import Data.Either
 import Data.List
 import Mooc.Todo
+import Test.QuickCheck (Result (output))
 
 ------------------------------------------------------------------------------
 -- Ex 1: implement the function maxBy that takes as argument a
@@ -123,7 +124,7 @@ capitalize s = unwords $ map (\(x : xs) -> toUpper x : xs) (words s)
 --   * the function takeWhile
 
 powers :: Int -> Int -> [Int]
-powers k max = todo
+powers k max = takeWhile (<= max) [k ^ x | x <- [0 ..]]
 
 ------------------------------------------------------------------------------
 -- Ex 7: implement a functional while loop. While should be a function
@@ -146,7 +147,9 @@ powers k max = todo
 --     ==> Avvt
 
 while :: (a -> Bool) -> (a -> a) -> a -> a
-while check update value = todo
+while check update value
+  | check value = while check update $ update value
+  | otherwise = value
 
 ------------------------------------------------------------------------------
 -- Ex 8: another version of a while loop. This time, the check
@@ -166,7 +169,9 @@ while check update value = todo
 -- Hint! Remember the case-of expression from lecture 2.
 
 whileRight :: (a -> Either b a) -> a -> b
-whileRight check x = todo
+whileRight check x = case check x of
+  Left v -> v
+  Right v -> whileRight check v
 
 -- for the whileRight examples:
 -- step k x doubles x if it's less than k
@@ -190,7 +195,7 @@ bomb x = Right (x - 1)
 -- Hint! This is a great use for list comprehensions
 
 joinToLength :: Int -> [String] -> [String]
-joinToLength = todo
+joinToLength n xs = [a ++ b | a <- xs, b <- xs, length (a ++ b) == n]
 
 ------------------------------------------------------------------------------
 -- Ex 10: implement the operator +|+ that returns a list with the first
@@ -203,6 +208,13 @@ joinToLength = todo
 --   [1,2,3] +|+ [4,5,6]  ==> [1,4]
 --   [] +|+ [True]        ==> [True]
 --   [] +|+ []            ==> []
+
+(+|+) :: [Int] -> [Int] -> [Int]
+xs +|+ ys = case (xs, ys) of
+  (x : xs, y : ys) -> [x, y]
+  (x : xs, _) -> [x]
+  (_, y : ys) -> [y]
+  otherwise -> []
 
 ------------------------------------------------------------------------------
 -- Ex 11: remember the lectureParticipants example from Lecture 2? We
@@ -219,7 +231,7 @@ joinToLength = todo
 --   sumRights [Left "bad!", Left "missing"]         ==>  0
 
 sumRights :: [Either a Int] -> Int
-sumRights = todo
+sumRights xs = sum $ map (\y -> either (const 0) (\x -> x) y) xs
 
 ------------------------------------------------------------------------------
 -- Ex 12: recall the binary function composition operation
@@ -235,7 +247,10 @@ sumRights = todo
 --   multiCompose [(3*), (2^), (+1)] 0 ==> 6
 --   multiCompose [(+1), (2^), (3*)] 0 ==> 2
 
-multiCompose fs = todo
+multiCompose :: [a -> a] -> a -> a
+multiCompose fs x = case fs of
+  [] -> x
+  otherwise -> multiCompose (init fs) $ last fs x
 
 ------------------------------------------------------------------------------
 -- Ex 13: let's consider another way to compose multiple functions. Given
@@ -256,7 +271,13 @@ multiCompose fs = todo
 --   multiApp id [head, (!!2), last] "axbxc" ==> ['a','b','c'] i.e. "abc"
 --   multiApp sum [head, (!!2), last] [1,9,2,9,3] ==> 6
 
-multiApp = todo
+multiApp :: ([c] -> b) -> [a -> c] -> a -> b
+multiApp f gs x = f (multiAppHelper gs x [])
+
+multiAppHelper :: [a -> c] -> a -> [c] -> [c]
+multiAppHelper gs x acc = case gs of
+  [] -> acc
+  otherwise -> multiAppHelper (tail gs) x (acc ++ [head gs x])
 
 ------------------------------------------------------------------------------
 -- Ex 14: in this exercise you get to implement an interpreter for a
@@ -291,4 +312,15 @@ multiApp = todo
 -- function, the surprise won't work. See section 3.8 in the material.
 
 interpreter :: [String] -> [String]
-interpreter commands = todo
+interpreter commands = interpreterHelper commands [0, 0] []
+
+-- [x,y]
+interpreterHelper :: [String] -> [Int] -> [String] -> [String]
+interpreterHelper [] state output = output
+interpreterHelper (op : ops) state output = case op of
+  "up" -> interpreterHelper ops (init state ++ [last state + 1]) output
+  "down" -> interpreterHelper ops (init state ++ [last state - 1]) output
+  "left" -> interpreterHelper ops ([head state - 1] ++ tail state) output
+  "right" -> interpreterHelper ops ([head state + 1] ++ tail state) output
+  "printY" -> interpreterHelper ops state (output ++ [show (last state)])
+  "printX" -> interpreterHelper ops state (output ++ [show (head state)])
